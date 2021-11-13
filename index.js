@@ -1,6 +1,14 @@
 // const http = require("http")
 const express = require("express")
-console.log("console logged Hello")
+var morgan = require("morgan")
+
+const app = express()
+
+morgan.token("body", req => JSON.stringify(req.body))
+// app.use(morgan("tiny"))
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+)
 
 let persons = [
   {
@@ -29,8 +37,6 @@ let persons = [
 //   res.writeHead(200, { "Content-Type": "application/json" })
 //   res.end(JSON.stringify(persons))
 // })
-
-const app = express()
 
 app.get("/", (req, res) => {
   res.send("<h1>HEY HEY helloooo</h1>") // express automatically sets Content-Type to html, but here in / i can't see Content-Type under firefox, only X-Powered-By: Express, and the status code is 304 Not Modified!
@@ -95,9 +101,14 @@ app.post("/api/persons", (req, res) => {
   }
 
   persons = persons.concat(person)
-  console.log(person)
+  //   console.log(person)
   res.json(person) // stringify js object to json string
 })
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).json({ error: "unknown url endpoint" })
+}
+app.use(unknownEndpoint)
 
 const PORT = 3002
 app.listen(PORT)
