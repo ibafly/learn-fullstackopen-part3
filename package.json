@@ -1,0 +1,13 @@
+{
+  "name": "learn-fullstackopen-part3",
+  "version": "0.1.0",
+  "description": "Resolutions for exercises in part3 of fullstackopen.com",
+  "main": "index.js",
+  "repository": "https://github.com/ibafly/learn-fullstackopen-part3",
+  "scripts": {
+	  "start": "node index.js",
+	  "test": "echo 'Warning: no test specified' && exit 1"
+  },
+  "author": "ibafly <copppe@gmail.com>",
+  "license": "MIT"
+}
