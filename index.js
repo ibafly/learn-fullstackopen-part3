@@ -1,8 +1,11 @@
 // const http = require("http")
 const express = require("express")
+const cors = require("cors")
 var morgan = require("morgan")
 
 const app = express()
+
+app.use(cors()) // allows requests from all origins
 
 morgan.token("body", req => JSON.stringify(req.body))
 // app.use(morgan("tiny"))
@@ -110,6 +113,6 @@ const unknownEndpoint = (req, res) => {
 }
 app.use(unknownEndpoint)
 
-const PORT = 3002
+const PORT = 3001
 app.listen(PORT)
-console.log("server running on PORT 3002")
+console.log("server running on PORT 3001")
