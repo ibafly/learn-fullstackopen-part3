@@ -5,6 +5,8 @@ var morgan = require("morgan")
 
 const app = express()
 
+app.use(express.static("build")) // express will find a resource corresponding to a request under build dir, and return it
+
 app.use(cors()) // allows requests from all origins
 
 morgan.token("body", req => JSON.stringify(req.body))
