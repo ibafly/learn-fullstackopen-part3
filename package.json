@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo 'Warning: no test specified' && exit 1"
+    "test": "echo 'Warning: no test specified' && exit 1",
+	"build:ui": "rm -rf build && cd ../learn-fullstackopen/part2/phonebook && yarn build --prod && cp -r build ../../../learn-fullstackopen-part3/",
+	"deploy": "git push heroku main",
+	"deploy:full": "yarn build:ui && git add . && git commit -m uibuild && yarn deploy",
+	"logs:prod": "heroku logs --tail"
   },
   "author": "ibafly <copppe@gmail.com>",
   "license": "MIT",
