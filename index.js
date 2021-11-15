@@ -1,7 +1,25 @@
 // const http = require("http")
+require("dotenv").config() // to use process.env.XXX
 const express = require("express")
 const cors = require("cors")
 var morgan = require("morgan")
+const Person = require("./models/person")
+// const mongoose = require("mongoose") // extract all mongoose code into its own module, under ./models dir
+
+// console.log(process.env.MONGODB_URI)
+
+// const uri = process.env.MONGODB_URI
+
+// mongoose.connect(uri).catch(err => {
+//   console.log("connect failed", err.message)
+// })
+
+// const personSchema = new mongoose.Schema({
+//   name: String,
+//   number: String,
+// })
+
+// const Person = new mongoose.model("Person", personSchema)
 
 const app = express()
 
@@ -15,28 +33,28 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body")
 )
 
-let persons = [
-  {
-    name: "Arto Hellas",
-    number: "040-123456",
-    id: 1,
-  },
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: 2,
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3,
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: 4,
-  },
-]
+// let persons = [
+//   {
+//     name: "Arto Hellas",
+//     number: "040-123456",
+//     id: 1,
+//   },
+//   {
+//     name: "Ada Lovelace",
+//     number: "39-44-5323523",
+//     id: 2,
+//   },
+//   {
+//     name: "Dan Abramov",
+//     number: "12-43-234345",
+//     id: 3,
+//   },
+//   {
+//     name: "Mary Poppendieck",
+//     number: "39-23-6423122",
+//     id: 4,
+//   },
+// ]
 
 // const app = http.createServer((req, res) => {
 //   res.writeHead(200, { "Content-Type": "application/json" })
@@ -53,15 +71,31 @@ app.get("/info", (req, res) => {
 })
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons) // express automatically sets Content-Type to application/json, status code defaults to 200.
+  Person.find({})
+    .then(result => {
+      res.json(result) // express automatically sets Content-Type to application/json, status code defaults to 200.
+
+      mongoose.connection.close()
+    })
+    .catch(err => {
+      res.status(500).end()
+    })
 })
 
 app.get("/api/persons/:id", (req, res) => {
   //   const id = req.params.id // id is assigned with a string typed number, not number typed
-  const id = Number(req.params.id)
-  const personWithId = persons.find(person => person.id === id)
+  //   const id = Number(req.params.id)
+  //   const personWithId = persons.find(person => person.id === id)
+  //   personWithId ? res.json(personWithId) : res.status(404).end()
 
-  personWithId ? res.json(personWithId) : res.status(404).end()
+  Person.findById(req.params.id)
+    .then(person => {
+      res.json(person)
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(400).send({ error: "malformatted id" })
+    })
 })
 
 app.delete("/api/persons/:id", (req, res) => {
@@ -94,20 +128,30 @@ app.post("/api/persons", (req, res) => {
     // date: new Date(), // generate timestamps here on server side
   } // request body comes in as string, auto parsed by function returned by express.json() to js object
 
-  if (
-    persons.find(
-      anyPerson =>
-        anyPerson.name.toLocaleLowerCase() === person.name.toLocaleLowerCase()
-    )
-  ) {
-    return res.status(400).json({ error: "name already exists in the server" })
-  } else if (!person.name || !person.number) {
+  //   if (
+  //     persons.find(
+  //       anyPerson =>
+  //         anyPerson.name.toLocaleLowerCase() === person.name.toLocaleLowerCase()
+  //     )
+  //   ) {
+  //     return res.status(400).json({ error: "name already exists in the server" })
+  //   } else
+  if (!person.name || !person.number) {
     return res.status(400).json({ error: "name or number is missing" }) // send 400 bad request if name is not filled, use RETURN to finish here, no going through code below
   }
 
-  persons = persons.concat(person)
-  //   console.log(person)
-  res.json(person) // stringify js object to json string
+  person
+    .save()
+    .then(savedPerson => {
+      res.json(savedPerson) // stringify js object to json string
+      mongoose.connection.close()
+    })
+    .catch(err => {
+      res.status(500).end()
+    })
+
+  //   persons = persons.concat(person)
+  //   res.json(person) // stringify js object to json string
 })
 
 const unknownEndpoint = (req, res) => {
@@ -116,5 +160,6 @@ const unknownEndpoint = (req, res) => {
 app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
-app.listen(PORT)
-console.log(`server running on PORT ${PORT}`)
+app.listen(PORT, () => {
+  console.log(`server running on PORT ${PORT}`)
+})
