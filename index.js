@@ -125,6 +125,33 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch(err => next(err))
 })
 
+app.use(express.json()) // put this line in the right place to avoid undefined req.body
+app.put("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndUpdate(
+    // req.params are in url while req.body is the request payload!
+    req.params.id,
+    { number: req.body.number },
+    { new: true }
+  )
+    .then(updatedPerson => {
+      //    if (updatedPerson) {
+      console.log(updatedPerson)
+      res.json(updatedPerson)
+      //   } else {
+      // do we need a POST in PUT?
+      //      res
+      //        .status(400)
+      //        .send({
+      //          error:
+      //            "update(put) failed, entry not found in remote sever, auto create a new entry",
+      //        })
+      //    }
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(500).end()
+    })
+})
 const generateMaxId = () => {
   const maxId =
     persons.length > 0 ? Math.max(...persons.map(person => person.id)) : 0
@@ -136,9 +163,9 @@ const generateRandId = () => {
   return Math.random() * Math.pow(10, 17)
 }
 
-app.use(express.json())
 app.post("/api/persons", (req, res) => {
   const body = req.body
+  console.log(req.body)
   /* const person = {
     // make person ignore other irrelevant req.body properties
     name: body.name,
