@@ -82,7 +82,7 @@ app.get("/api/persons", (req, res) => {
     })
 })
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   //   const id = req.params.id // id is assigned with a string typed number, not number typed
   //   const id = Number(req.params.id)
   //   const personWithId = persons.find(person => person.id === id)
@@ -96,13 +96,15 @@ app.get("/api/persons/:id", (req, res) => {
         res.status(404).end()
       }
     })
-    .catch(err => {
-      console.log(err)
-      res.status(400).send({ error: "malformatted id" })
-    })
+    //    .catch(err => {
+
+    //      console.log(err)
+    //      res.status(400).send({ error: "malformatted id" })
+    //    })
+    .catch(err => next(err)) // goes to error handling middleware
 })
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   //  const id = Number(req.params.id) // req.params get all params in link's tail as an object
   const id = req.params.id // mongoDB requires string of a string of 12 bytes or a string of 24 hex characters
 
@@ -116,10 +118,11 @@ app.delete("/api/persons/:id", (req, res) => {
         res.status(404).end()
       }
     })
-    .catch(err => {
-      console.log(err)
-      res.status(400).send({ error: "malformatted id & no deletion" })
-    })
+    //    .catch(err => {
+    //      console.log(err)
+    //      res.status(400).send({ error: "malformatted id & no deletion" })
+    //    })
+    .catch(err => next(err))
 })
 
 const generateMaxId = () => {
@@ -179,6 +182,15 @@ const unknownEndpoint = (req, res) => {
   res.status(404).json({ error: "unknown url endpoint" })
 }
 app.use(unknownEndpoint)
+
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message)
+  if (err.name === "CastError") {
+    res.status(400).send({ error: "malfomatted id" })
+  }
+  next(err)
+}
+app.use(errorHandler) // error handling middleware should be the last loaded middleware
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
