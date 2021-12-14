@@ -90,7 +90,11 @@ app.get("/api/persons/:id", (req, res) => {
 
   Person.findById(req.params.id)
     .then(person => {
-      res.json(person)
+      if (person) {
+        res.json(person)
+      } else {
+        res.status(404).end()
+      }
     })
     .catch(err => {
       console.log(err)
@@ -99,10 +103,23 @@ app.get("/api/persons/:id", (req, res) => {
 })
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id) // req.params get all params in link's tail as an object
+  //  const id = Number(req.params.id) // req.params get all params in link's tail as an object
+  const id = req.params.id // mongoDB requires string of a string of 12 bytes or a string of 24 hex characters
 
-  persons = persons.filter(person => person.id !== id)
-  res.status(204).end() // 204 no content means item existed and success deleted. no consencus here, choose from 204 or 404
+  //  persons = persons.filter(person => person.id !== id)
+  Person.findByIdAndDelete(id)
+    .then(person => {
+      if (person) {
+        console.log(person)
+        res.status(204).end() // 204 no content means item existed and success deleted. no consencus here, choosed from 204 or 404
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(err => {
+      console.log(err)
+      res.status(400).send({ error: "malformatted id & no deletion" })
+    })
 })
 
 const generateMaxId = () => {
